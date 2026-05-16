@@ -66,6 +66,7 @@ packages/producer/src/services/fontData.generated.ts
 qa-artifacts/
 my-video/
 examples/
+videos/
 packages/studio/data/
 .desloppify/
 .worktrees/
@@ -77,6 +78,22 @@ packages/studio/data/
 .agents/
 .claude/skills/
 skills-lock.json
+
+# Imported personal agent/project memory.
+docs/imported-*-memory/
+
+# Personal publishing and tutorial workflow skills.
+skills/daily-threads-post/
+skills/instagram-publishing-rules/
+skills/remotion-best-practices/
+skills/threads-algorithm-rules/
+skills/threads-publishing-rules/
+skills/tutorial-auto-pagebreak/
+skills/tutorial-publish-pipeline/
+skills/tutorial-reel-rendering/
+skills/tutorial-voiceover-style/
+skills/x-publishing-rules/
+skills/youtube-publishing-rules/
 
 # Skills from other PRs (not managed here)
 skills/hyperframes-animation-map/

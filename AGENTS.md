@@ -69,6 +69,25 @@ skills/                 → AI agent skill definitions
 - **Frame Adapters**: Animation runtimes plug in via the seek-by-frame adapter pattern. GSAP is the primary adapter.
 - **Deterministic rendering**: No `Date.now()`, no unseeded `Math.random()`, no render-time network fetches.
 
+## Agent Workflow
+
+- For long-running or parallelizable work, prefer using a worker/subagent in the background.
+- Keep the main agent responsive for user questions and coordination instead of blocking on renders, validation, large scans, builds, tests, or broad refactors.
+- Good subagent tasks include:
+  - `npx hyperframes lint`, `validate`, `inspect`, and `render`
+  - large asset or source scans
+  - video composition implementation or repair
+  - platform-spec research and summary
+  - long-running build and test verification
+- The main agent owns coordination, user-facing answers, result integration, and final engineering judgment.
+
+## Branch Inheritance
+
+- Shared rules, skills, and framework changes live on `main`.
+- Personal video branches use `video/<name>` locally and should not be pushed to remote.
+- Before continuing work in an existing `video/*` branch, merge or rebase the latest `main` so new skills and AGENTS.md rules are inherited.
+- When adding a new shared skill or agent rule, add it on `main` first, then update active local video worktrees from `main`.
+
 ## Documentation
 
 - Docs: https://hyperframes.heygen.com/introduction
