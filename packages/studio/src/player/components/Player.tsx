@@ -304,8 +304,8 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
       assetOverlayVisible && !shaderTransitionLoading && !showCompositionOverlay;
 
     useEffect(() => {
-      onCompositionLoadingChange?.(showCompositionOverlay || showAssetOverlay);
-    }, [onCompositionLoadingChange, showCompositionOverlay, showAssetOverlay]);
+      onCompositionLoadingChange?.(showCompositionOverlay);
+    }, [onCompositionLoadingChange, showCompositionOverlay]);
 
     return (
       <div

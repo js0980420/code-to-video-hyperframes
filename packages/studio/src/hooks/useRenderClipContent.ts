@@ -12,6 +12,17 @@ interface UseRenderClipContentOptions {
   effectiveTimelineDuration: number;
 }
 
+const AUDIO_ASSET_EXTENSION = /\.(?:aac|aiff?|flac|m4a|mp3|oga|ogg|opus|wav|weba)(?:[?#].*)?$/i;
+const VISUAL_ASSET_EXTENSION = /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|mov|m4v|webm)(?:[?#].*)?$/i;
+
+function isAudioAssetSrc(src: string | undefined): boolean {
+  return Boolean(src && AUDIO_ASSET_EXTENSION.test(src));
+}
+
+function isVisualAssetSrc(src: string | undefined): boolean {
+  return Boolean(src && VISUAL_ASSET_EXTENSION.test(src));
+}
+
 export function useRenderClipContent({
   projectIdRef,
   compIdToSrc,
@@ -67,8 +78,10 @@ export function useRenderClipContent({
         el.duration < effectiveTimelineDuration * 0.92 &&
         !/(backdrop|background|overlay|scrim|mask)/i.test(el.id);
 
-      // Audio clips — waveform visualization
-      if (el.tag === "audio") {
+      // Audio clips — waveform visualization.
+      // Guard by extension because DOM fallback parsing can inherit nested media
+      // metadata from visual wrappers; image URLs should never hit /waveform.
+      if (el.tag === "audio" && isAudioAssetSrc(el.src)) {
         const previewBase = `/api/projects/${pid}/preview/`;
         const previewIdx = el.src?.startsWith("http") ? el.src.indexOf(previewBase) : -1;
         const srcRelative = el.src
@@ -92,7 +105,7 @@ export function useRenderClipContent({
         });
       }
 
-      if ((el.tag === "video" || el.tag === "img") && el.src) {
+      if ((el.tag === "video" || el.tag === "img" || isVisualAssetSrc(el.src)) && el.src) {
         const mediaSrc = el.src.startsWith("http")
           ? el.src
           : `/api/projects/${pid}/preview/${el.src}`;

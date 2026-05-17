@@ -11,25 +11,6 @@ const BAR_W = 2;
 const GAP = 1;
 const STEP = BAR_W + GAP;
 
-/** Downsample PCM channel data into peak amplitudes (0–1). */
-function extractPeaks(channelData: Float32Array, barCount: number): number[] {
-  const peaks: number[] = [];
-  const samplesPerBar = Math.floor(channelData.length / barCount);
-  if (samplesPerBar === 0) return Array(barCount).fill(0);
-  for (let i = 0; i < barCount; i++) {
-    let max = 0;
-    const start = i * samplesPerBar;
-    const end = Math.min(start + samplesPerBar, channelData.length);
-    for (let j = start; j < end; j++) {
-      const abs = Math.abs(channelData[j] ?? 0);
-      if (abs > max) max = abs;
-    }
-    peaks.push(max);
-  }
-  const maxPeak = Math.max(...peaks, 0.001);
-  return peaks.map((p) => p / maxPeak);
-}
-
 /** Deterministic fake waveform as fallback (matches demo app). */
 function fakePeaks(url: string, count: number): number[] {
   let seed = 0;
@@ -84,13 +65,11 @@ export const AudioWaveform = memo(function AudioWaveform({
                 if (!Array.isArray(d.peaks)) throw new Error("bad response");
                 return d.peaks;
               })
-          : fetch(audioUrl)
-              .then((r) => r.arrayBuffer())
-              .then((buf) => {
-                const ctx = new AudioContext();
-                return ctx.decodeAudioData(buf).finally(() => ctx.close());
-              })
-              .then((decoded) => extractPeaks(decoded.getChannelData(0), 4000))
+          : fetch(audioUrl).then(() => {
+              // Do not create AudioContext during passive timeline rendering.
+              // Chrome blocks it before a user gesture and logs noisy warnings.
+              throw new Error("waveform endpoint unavailable");
+            })
       )
         .catch(() => fakePeaks(cacheKey, 4000))
         .then((p) => {
