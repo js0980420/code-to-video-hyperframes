@@ -57,27 +57,6 @@ export function useRenderClipContent({
         });
       }
 
-      // When drilled into a composition, render all inner elements via
-      // CompositionThumbnail at their start time — most accurate visual.
-      if (activePreviewUrl && el.duration > 0) {
-        return createElement(CompositionThumbnail, {
-          previewUrl: activePreviewUrl,
-          label: getTimelineElementLabel(el),
-          labelColor: style.label,
-          accentColor: style.clip,
-          selector: el.selector,
-          selectorIndex: el.selectorIndex,
-          seekTime: el.start,
-          duration: el.duration,
-        });
-      }
-
-      const htmlPreviewEligible =
-        el.duration > 0 &&
-        effectiveTimelineDuration > 0 &&
-        el.duration < effectiveTimelineDuration * 0.92 &&
-        !/(backdrop|background|overlay|scrim|mask)/i.test(el.id);
-
       // Audio clips — waveform visualization.
       // Guard by extension because DOM fallback parsing can inherit nested media
       // metadata from visual wrappers; image URLs should never hit /waveform.
@@ -104,6 +83,28 @@ export function useRenderClipContent({
           labelColor: style.label,
         });
       }
+
+      // When drilled into a composition, render inner visual elements via
+      // CompositionThumbnail at their start time. Audio-only clips must stay on
+      // the waveform path above because selector thumbnails expect visible DOM.
+      if (activePreviewUrl && el.duration > 0) {
+        return createElement(CompositionThumbnail, {
+          previewUrl: activePreviewUrl,
+          label: getTimelineElementLabel(el),
+          labelColor: style.label,
+          accentColor: style.clip,
+          selector: el.selector,
+          selectorIndex: el.selectorIndex,
+          seekTime: el.start,
+          duration: el.duration,
+        });
+      }
+
+      const htmlPreviewEligible =
+        el.duration > 0 &&
+        effectiveTimelineDuration > 0 &&
+        el.duration < effectiveTimelineDuration * 0.92 &&
+        !/(backdrop|background|overlay|scrim|mask)/i.test(el.id);
 
       if ((el.tag === "video" || el.tag === "img" || isVisualAssetSrc(el.src)) && el.src) {
         const mediaSrc = el.src.startsWith("http")

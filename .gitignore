@@ -13,6 +13,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
 # Docs media — served from CDN, not committed.
 # Regenerate with scripts/generate-{catalog,template}-previews.ts then upload
@@ -67,6 +68,8 @@ qa-artifacts/
 my-video/
 examples/
 videos/
+assets/Facebook-Brand-Asset-Pack/
+assets/IG_brand_asset_pack_2023/
 packages/studio/data/
 .desloppify/
 .worktrees/
