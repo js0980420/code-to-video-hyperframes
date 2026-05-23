@@ -123,3 +123,11 @@ claude-design-hyperframes-video/
 .claude/worktrees/
 .claude/
 docs/superpowers/
+
+# Local tool state and Python virtualenvs.
+.antigravitycli/
+.venv-tts/
+
+# Root screenshot scratch area. Keep the usage note only.
+assets/screenshots/*
+!assets/screenshots/README.md
