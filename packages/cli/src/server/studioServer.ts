@@ -308,7 +308,12 @@ export function createStudioServer(options: StudioServerOptions): StudioServer {
         await page.evaluate((t: number) => {
           const win = window as any;
           if (win.__player?.seek) win.__player.seek(t);
-          else if (win.__timeline?.seek) {
+          else if (win.__timelines) {
+            for (const timeline of Object.values(win.__timelines)) {
+              timeline?.pause?.(t);
+            }
+            win.gsap?.ticker?.tick?.();
+          } else if (win.__timeline?.seek) {
             win.__timeline.pause();
             win.__timeline.seek(t);
           }

@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useMemo } from "react";
-import { useMountEffect } from "./hooks/useMountEffect";
 import type { LeftSidebarHandle } from "./components/sidebar/LeftSidebar";
 import { useRenderQueue } from "./components/renders/useRenderQueue";
 import { usePlayerStore } from "./player";
@@ -38,6 +37,7 @@ import { StudioProvider, type StudioContextValue } from "./contexts/StudioContex
 import { PanelLayoutProvider } from "./contexts/PanelLayoutContext";
 import { FileManagerProvider } from "./contexts/FileManagerContext";
 import { DomEditProvider } from "./contexts/DomEditContext";
+import { useMountEffect } from "./hooks/useMountEffect";
 
 export function StudioApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -119,6 +119,17 @@ export function StudioApp() {
       setRefreshKey((k) => k + 1);
     }
   }, []);
+
+  useMountEffect(() => {
+    const handleExternalFileChange = () => {
+      setRefreshKey((k) => k + 1);
+    };
+    if (import.meta.hot) {
+      import.meta.hot.on("hf:file-change", handleExternalFileChange);
+      return () => import.meta.hot?.off?.("hf:file-change", handleExternalFileChange);
+    }
+    return undefined;
+  });
 
   const fileManager = useFileManager({
     projectId,

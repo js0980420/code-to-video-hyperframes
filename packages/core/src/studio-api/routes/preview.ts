@@ -235,13 +235,15 @@ export function registerPreviewRoutes(api: Hono, adapter: StudioApiAdapter): voi
     }
     const contentType = getMimeType(subPath);
     const isText = /\.(html|css|js|json|svg|txt|md)$/i.test(subPath);
+    const isAudio = /\.(wav|mp3|m4a|aac|ogg|flac)$/i.test(subPath);
 
     const etag = `"${stat.mtimeMs.toString(36)}-${stat.size.toString(36)}"`;
-    const cacheHeaders: Record<string, string> = isText
-      ? { "Cache-Control": "no-store" }
-      : { "Cache-Control": "private, max-age=3600, must-revalidate", ETag: etag };
+    const cacheHeaders: Record<string, string> =
+      isText || isAudio
+        ? { "Cache-Control": "no-store" }
+        : { "Cache-Control": "private, max-age=3600, must-revalidate", ETag: etag };
 
-    if (!isText) {
+    if (!isText && !isAudio) {
       const ifNoneMatch = c.req.header("If-None-Match");
       if (ifNoneMatch === etag) {
         return new Response(null, { status: 304, headers: cacheHeaders });
