@@ -22,6 +22,27 @@ For specific requests ("add a title card", "fix the timing on scene 3"), skip di
 
 For exploratory requests, consider offering 2-3 variations that differ meaningfully — not just color swaps, but different pacing, energy levels, or structural approaches. One safe/expected, one ambitious. Don't mandate this — it's a tool available when appropriate.
 
+Default aspect ratio to `1920x1080` for explainers, product demos, internal walkthroughs, docs-derived videos, and general desktop-first content.
+
+Do not start portrait / `1080x1920` / `9:16` variants until the landscape version is confirmed, unless the user explicitly asks for portrait or platform-specific output first.
+
+Do not kick off a final render until the user confirms the landscape composition is ready to render.
+
+If the user has not provided media assets, prefer self-contained motion graphics, typography, charts, diagrams, UI-style callouts, and other source-contained compositions. Do not search the web for media assets; ask the user to prepare and provide them.
+
+### Visual debugging rule
+
+When the user reports visual or render symptoms such as blank frames, no visible content, layout breakage, overflow, wrong layering, timing mismatches, or "it looks different in preview/render", do not answer from static code inspection alone.
+
+First reproduce with a headless browser against the actual preview or render surface, then inspect the real output before concluding anything:
+
+- open the relevant preview URL in headless Chrome
+- capture a screenshot and/or dump the DOM
+- check console errors and failed network requests
+- verify the computed visible state at the affected timestamp or first frame
+
+Treat headless inspection as the default first step for visual defects. Use code reading only after confirming what the browser is actually rendering.
+
 ### Step 1: Design system
 
 If `design.md` or `DESIGN.md` exists in the project, read it first (check both casings — they're different files on Linux). It's the source of truth for brand colors, fonts, and constraints. Use its exact values — don't invent colors or substitute fonts. Any format works (YAML frontmatter, prose, tables — just extract the values).
