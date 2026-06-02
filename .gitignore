@@ -67,7 +67,13 @@ packages/producer/src/services/fontData.generated.ts
 qa-artifacts/
 my-video/
 examples/
-videos/
+videos/*
+# 排除特定的影片專案，讓其可以被 Git 追蹤
+!videos/youtube-channel-intro-terminal/
+# 但依然忽略該專案底下的快取與渲染結果
+videos/youtube-channel-intro-terminal/.thumbnails/
+videos/youtube-channel-intro-terminal/.waveform-cache/
+videos/youtube-channel-intro-terminal/renders/
 assets/Facebook-Brand-Asset-Pack/
 assets/IG_brand_asset_pack_2023/
 packages/studio/data/

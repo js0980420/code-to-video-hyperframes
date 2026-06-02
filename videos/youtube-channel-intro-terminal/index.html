@@ -1,0 +1,634 @@
+<!doctype html>
+<html
+  lang="zh-Hant"
+  data-composition-variables='[
+    {"id":"logoSrc","type":"string","label":"Logo Image","default":"assets/default-logo.png"},
+    {"id":"channelName","type":"string","label":"Channel Name","default":"艾克斯王"},
+    {"id":"tagline","type":"string","label":"Tagline","default":"自動化發文教學｜拍片工作流分享｜AI Agent 問題免費諮詢"},
+    {"id":"promptText","type":"string","label":"Prompt Text","default":"一支 5 秒的 YouTube 頻道片頭：深色背景＋中央光暈擴散，Logo 彈跳進場，頻道名稱滑入，標語淡入，最後整體上滑退出。"},
+    {"id":"backgroundColor","type":"color","label":"Background Color","default":"#1d2028"},
+    {"id":"accentColor","type":"color","label":"Accent Color","default":"#eb2f2f"},
+    {"id":"glowColor","type":"color","label":"Glow Color","default":"#15d45b"},
+    {"id":"secondaryColor","type":"color","label":"Secondary Color","default":"#ffffff"},
+    {"id":"textColor","type":"color","label":"Text Color","default":"#f7f7f5"},
+    {"id":"subtextColor","type":"color","label":"Subtext Color","default":"#a9afb8"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>YouTube Channel Intro Terminal Prelude</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap");
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        overflow: hidden;
+        background: #1d2028;
+        font-family: "Inter", "Noto Sans TC", sans-serif;
+      }
+
+      body {
+        color: var(--text-color, #f7f7f5);
+      }
+
+      #intro-root {
+        --background-color: #1d2028;
+        --accent-color: #eb2f2f;
+        --glow-color: #15d45b;
+        --secondary-color: #ffffff;
+        --text-color: #f7f7f5;
+        --subtext-color: #a9afb8;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.05), transparent 30%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+          var(--background-color);
+      }
+
+      #intro-root .clip {
+        position: absolute;
+        inset: 0;
+      }
+
+      #intro-root .terminal-scene {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 170px 210px 160px;
+      }
+
+      #intro-root .terminal-stage {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #intro-root .terminal-shell {
+        width: min(1320px, 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 26px;
+        overflow: hidden;
+        background: rgba(8, 10, 16, 0.82);
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.42),
+          0 0 0 1px rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(10px);
+      }
+
+      #intro-root .terminal-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 26px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 18px;
+        color: rgba(247, 247, 245, 0.88);
+      }
+
+      #intro-root .traffic {
+        display: inline-flex;
+        gap: 10px;
+      }
+
+      #intro-root .traffic span {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+      }
+
+      #intro-root .traffic span:nth-child(1) {
+        background: #ff6258;
+      }
+
+      #intro-root .traffic span:nth-child(2) {
+        background: #ffbe2f;
+      }
+
+      #intro-root .traffic span:nth-child(3) {
+        background: #28c840;
+      }
+
+      #intro-root .terminal-body {
+        padding: 34px 36px 40px;
+        min-height: 310px;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      #intro-root .prompt-head,
+      #intro-root .prompt-line {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      #intro-root .prompt-head {
+        margin-bottom: 22px;
+        color: var(--subtext-color);
+        font-size: 22px;
+      }
+
+      #intro-root .prompt-line {
+        color: var(--text-color);
+        font-size: 34px;
+        line-height: 1.5;
+      }
+
+      #intro-root .prompt-prefix {
+        flex: 0 0 auto;
+        color: var(--glow-color);
+      }
+
+      #intro-root .prompt-text-wrap {
+        position: relative;
+        flex: 1;
+        min-height: 156px;
+      }
+
+      #intro-root .prompt-text,
+      #intro-root .prompt-ghost {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      #intro-root .prompt-text {
+        position: absolute;
+        inset: 0 auto auto 0;
+      }
+
+      #intro-root .prompt-ghost {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #intro-root .caret {
+        display: inline-block;
+        width: 14px;
+        height: 1.15em;
+        margin-left: 4px;
+        vertical-align: text-bottom;
+        background: var(--accent-color);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--accent-color) 60%, transparent);
+      }
+
+      #intro-root .beam {
+        position: absolute;
+        left: -8%;
+        width: 116%;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0),
+          var(--accent-color) 20%,
+          var(--accent-color) 80%,
+          rgba(0, 0, 0, 0)
+        );
+        box-shadow: 0 0 28px color-mix(in srgb, var(--accent-color) 65%, transparent);
+        opacity: 0.95;
+      }
+
+      #intro-root .beam-top {
+        top: 30%;
+        transform: rotate(-2.1deg);
+      }
+
+      #intro-root .beam-bottom {
+        bottom: 16%;
+        transform: rotate(-2.1deg);
+      }
+
+      #intro-root .ambient-center {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+      }
+
+      #intro-root .glow-disc,
+      #intro-root .glow-ring,
+      #intro-root .glow-speck {
+        position: absolute;
+        border-radius: 999px;
+        opacity: 0;
+      }
+
+      #intro-root .glow-disc {
+        width: 780px;
+        height: 780px;
+        background: radial-gradient(
+          circle,
+          color-mix(in srgb, var(--glow-color) 34%, white) 0%,
+          color-mix(in srgb, var(--glow-color) 22%, transparent) 26%,
+          transparent 72%
+        );
+        filter: blur(12px);
+      }
+
+      #intro-root .glow-ring {
+        width: 980px;
+        height: 980px;
+        border: 2px solid color-mix(in srgb, var(--glow-color) 42%, transparent);
+        box-shadow:
+          0 0 42px color-mix(in srgb, var(--glow-color) 30%, transparent),
+          inset 0 0 42px color-mix(in srgb, var(--glow-color) 16%, transparent);
+      }
+
+      #intro-root .glow-speck {
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(
+          circle,
+          color-mix(in srgb, var(--secondary-color) 38%, transparent),
+          transparent 72%
+        );
+        filter: blur(22px);
+      }
+
+      #intro-root .hero {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 140px 200px 180px;
+      }
+
+      #intro-root .logo-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 328px;
+        height: 328px;
+      }
+
+      #intro-root .logo-halo,
+      #intro-root .logo-outline {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+      }
+
+      #intro-root .logo-halo {
+        background: radial-gradient(
+          circle,
+          color-mix(in srgb, var(--accent-color) 24%, transparent) 0%,
+          transparent 70%
+        );
+        filter: blur(14px);
+        transform: scale(1.18);
+      }
+
+      #intro-root .logo-outline {
+        border: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
+        box-shadow:
+          0 0 30px color-mix(in srgb, var(--accent-color) 20%, transparent),
+          0 0 0 14px color-mix(in srgb, var(--secondary-color) 4%, transparent);
+      }
+
+      #intro-root .logo-image {
+        position: relative;
+        width: 272px;
+        height: 272px;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 6px solid var(--accent-color);
+        background: color-mix(in srgb, var(--secondary-color) 10%, var(--background-color));
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.42),
+          0 0 44px color-mix(in srgb, var(--accent-color) 18%, transparent);
+      }
+
+      #intro-root .logo-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      #intro-root .copy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        margin-top: 40px;
+        text-align: center;
+      }
+
+      #intro-root .channel-name,
+      #intro-root .tagline {
+        margin: 0;
+      }
+
+      #intro-root .channel-name {
+        max-width: 1420px;
+        font-size: 104px;
+        font-weight: 600;
+        line-height: 1.02;
+        letter-spacing: -0.045em;
+        text-wrap: balance;
+      }
+
+      #intro-root .tagline {
+        max-width: 1320px;
+        color: var(--subtext-color);
+        font-size: 38px;
+        font-weight: 500;
+        line-height: 1.35;
+        letter-spacing: 0.01em;
+      }
+
+      #intro-root .micro-label {
+        position: absolute;
+        top: 86px;
+        left: 50%;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 22px;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--accent-color) 35%, transparent);
+        background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+        color: var(--secondary-color);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transform: translateX(-50%);
+        backdrop-filter: blur(12px);
+      }
+
+      #intro-root .micro-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--glow-color);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--glow-color) 65%, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="intro-root"
+      data-composition-id="youtube-channel-intro-terminal"
+      data-start="0"
+      data-duration="7.6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        id="terminal-scene"
+        class="clip terminal-scene"
+        data-start="0"
+        data-duration="2.6"
+        data-track-index="1"
+      >
+        <div class="terminal-stage">
+          <div class="terminal-shell">
+            <div class="terminal-bar">
+              <div class="traffic"><span></span><span></span><span></span></div>
+              <span>agent-prompt.sh</span>
+              <span>ready</span>
+            </div>
+            <div class="terminal-body">
+              <div class="prompt-head">
+                <span class="prompt-prefix">~/channel-intro</span>
+                <span>codex render --prompt</span>
+              </div>
+              <div class="prompt-line">
+                <span class="prompt-prefix">$</span>
+                <div class="prompt-text-wrap">
+                  <p id="prompt-ghost" class="prompt-ghost"></p>
+                  <p id="prompt-text" class="prompt-text"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="intro-scene"
+        class="clip scene"
+        data-start="2.6"
+        data-duration="5"
+        data-track-index="2"
+      >
+        <div class="beam beam-top"></div>
+        <div class="beam beam-bottom"></div>
+        <div class="ambient-center">
+          <div class="glow-disc"></div>
+          <div class="glow-ring"></div>
+          <div class="glow-speck"></div>
+        </div>
+
+        <div class="micro-label">
+          <span class="micro-dot"></span>
+          Channel Intro
+        </div>
+
+        <div class="hero">
+          <div class="logo-wrap">
+            <div class="logo-halo"></div>
+            <div class="logo-outline"></div>
+            <div class="logo-image">
+              <img id="logo-image" alt="Channel logo" src="assets/default-logo.png" />
+            </div>
+          </div>
+
+          <div class="copy">
+            <h1 id="channel-name" class="channel-name">艾克斯王</h1>
+            <p id="tagline" class="tagline">
+              自動化發文教學｜拍片工作流分享｜AI Agent 問題免費諮詢
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const defaults = {
+        logoSrc: "assets/default-logo.png",
+        channelName: "艾克斯王",
+        tagline: "自動化發文教學｜拍片工作流分享｜AI Agent 問題免費諮詢",
+        promptText:
+          "一支 5 秒的 YouTube 頻道片頭：深色背景＋中央光暈擴散，Logo 彈跳進場，頻道名稱滑入，標語淡入，最後整體上滑退出。",
+        backgroundColor: "#1d2028",
+        accentColor: "#eb2f2f",
+        glowColor: "#15d45b",
+        secondaryColor: "#ffffff",
+        textColor: "#f7f7f5",
+        subtextColor: "#a9afb8",
+      };
+
+      const variables =
+        window.__hyperframes && typeof window.__hyperframes.getVariables === "function"
+          ? window.__hyperframes.getVariables()
+          : defaults;
+
+      const resolved = { ...defaults, ...variables };
+      const root = document.getElementById("intro-root");
+      const logoImage = document.getElementById("logo-image");
+      const channelName = document.getElementById("channel-name");
+      const tagline = document.getElementById("tagline");
+      const promptText = document.getElementById("prompt-text");
+      const promptGhost = document.getElementById("prompt-ghost");
+
+      root.style.setProperty("--background-color", resolved.backgroundColor);
+      root.style.setProperty("--accent-color", resolved.accentColor);
+      root.style.setProperty("--glow-color", resolved.glowColor);
+      root.style.setProperty("--secondary-color", resolved.secondaryColor);
+      root.style.setProperty("--text-color", resolved.textColor);
+      root.style.setProperty("--subtext-color", resolved.subtextColor);
+
+      logoImage.src = resolved.logoSrc || defaults.logoSrc;
+      channelName.textContent = resolved.channelName || defaults.channelName;
+      tagline.textContent = resolved.tagline || defaults.tagline;
+      tagline.style.display = tagline.textContent.trim() ? "block" : "none";
+
+      const finalPromptText = resolved.promptText || defaults.promptText;
+      promptGhost.textContent = finalPromptText;
+      promptText.textContent = "";
+
+      const caret = document.createElement("span");
+      caret.className = "caret";
+      promptText.appendChild(caret);
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.set(
+        [
+          ".glow-disc",
+          ".glow-ring",
+          ".glow-speck",
+          ".logo-wrap",
+          ".channel-name",
+          ".tagline",
+          ".micro-label",
+          ".terminal-shell",
+        ],
+        {
+          transformOrigin: "center center",
+        },
+      );
+
+      tl.fromTo(
+        ".terminal-shell",
+        { y: 36, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: "power2.out" },
+        0,
+      );
+      tl.fromTo(
+        ".traffic span",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.15, stagger: 0.05 },
+        0.2,
+      );
+      tl.fromTo(".prompt-head", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35 }, 0.3);
+      tl.to(
+        { chars: 0 },
+        {
+          chars: finalPromptText.length,
+          duration: 1.45,
+          ease: "none",
+          onUpdate() {
+            const count = Math.floor(this.targets()[0].chars);
+            promptText.textContent = finalPromptText.slice(0, count);
+            promptText.appendChild(caret);
+          },
+        },
+        0.55,
+      );
+      tl.to(".caret", { opacity: 0, duration: 0.12, repeat: 7, yoyo: true, ease: "none" }, 0.75);
+      tl.to(".terminal-stage", { y: -36, opacity: 0, duration: 0.45, ease: "power2.in" }, 2.15);
+      tl.set(".terminal-stage", { opacity: 0, display: "none" }, 2.6);
+
+      tl.fromTo(
+        ".glow-disc",
+        { scale: 0.14, opacity: 0 },
+        { scale: 1.25, opacity: 1, duration: 1.5, ease: "power3.out" },
+        2.6,
+      );
+      tl.fromTo(
+        ".glow-ring",
+        { scale: 0.28, opacity: 0 },
+        { scale: 1, opacity: 0.72, duration: 1.5, ease: "power2.out" },
+        2.65,
+      );
+      tl.fromTo(
+        ".glow-speck",
+        { scale: 0.22, opacity: 0 },
+        { scale: 1.45, opacity: 0.8, duration: 1.25, ease: "power2.out" },
+        2.72,
+      );
+      tl.fromTo(
+        ".logo-wrap",
+        { scale: 0.18, y: 40, opacity: 0 },
+        { scale: 1, y: 0, opacity: 1, duration: 1.3, ease: "elastic.out(1, 0.55)" },
+        3.4,
+      );
+      tl.fromTo(
+        ".micro-label",
+        { y: -30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" },
+        3.75,
+      );
+      tl.fromTo(
+        ".channel-name",
+        { y: 110, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, ease: "power3.out" },
+        4.6,
+      );
+      tl.fromTo(
+        ".tagline",
+        { y: 28, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.75, ease: "power2.out" },
+        5.1,
+      );
+      tl.to(
+        [".hero", ".micro-label", ".beam-top", ".beam-bottom"],
+        {
+          y: -180,
+          opacity: 0,
+          duration: 0.85,
+          ease: "power2.in",
+          stagger: 0.03,
+        },
+        6.6,
+      );
+      tl.to(
+        [".glow-disc", ".glow-ring", ".glow-speck"],
+        {
+          scale: 0.86,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power2.in",
+        },
+        6.6,
+      );
+
+      window.__timelines["youtube-channel-intro-terminal"] = tl;
+    </script>
+  </body>
+</html>

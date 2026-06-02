@@ -1,0 +1,12 @@
+{
+  "name": "youtube-channel-intro-terminal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preview": "PRODUCER_HEADLESS_SHELL_PATH=/home/js0980420/.cache/puppeteer/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell node ../../packages/cli/dist/cli.js preview .",
+    "lint": "node ../../packages/cli/dist/cli.js lint .",
+    "validate": "PRODUCER_HEADLESS_SHELL_PATH=/home/js0980420/.cache/puppeteer/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell node ../../packages/cli/dist/cli.js validate .",
+    "check": "node ../../packages/cli/dist/cli.js lint . && PRODUCER_HEADLESS_SHELL_PATH=/home/js0980420/.cache/puppeteer/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell node ../../packages/cli/dist/cli.js validate .",
+    "render": "PRODUCER_HEADLESS_SHELL_PATH=/home/js0980420/.cache/puppeteer/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell node ../../packages/cli/dist/cli.js render ."
+  }
+}
