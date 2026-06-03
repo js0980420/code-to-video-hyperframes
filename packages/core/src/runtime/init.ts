@@ -1679,24 +1679,31 @@ export function initSandboxRuntimeModular(): void {
     const timelines = (window.__timelines ?? {}) as Record<string, RuntimeTimelineLike | undefined>;
     const rootCompositionId =
       resolveRootCompositionElement()?.getAttribute("data-composition-id") ?? null;
+    const firstVisibleFrameSeconds = 1 / 60;
     for (const [compositionId, timeline] of Object.entries(timelines)) {
       if (!timeline || compositionId === rootCompositionId) continue;
       const node = document.querySelector(`[data-composition-id="${CSS.escape(compositionId)}"]`);
       if (!node) continue;
       const start = resolveStartForElement(node, 0);
       if (!Number.isFinite(start)) continue;
+      if (timeSeconds < start) continue;
       const authoredDuration = resolveDurationForElement(node, {
         includeAuthoredTimingAttrs: true,
       });
       const timelineDuration = getTimelineDurationSeconds(timeline);
       const duration =
         authoredDuration != null && authoredDuration > 0 ? authoredDuration : timelineDuration;
-      const localTime = Math.max(
-        0,
+      const rawLocalTime = timeSeconds - start;
+      const clampedLocalTime =
         duration != null && duration > 0
-          ? Math.min(duration, timeSeconds - start)
-          : timeSeconds - start,
-      );
+          ? Math.min(duration, Math.max(0, rawLocalTime))
+          : Math.max(0, rawLocalTime);
+      const localTime =
+        clampedLocalTime === 0 && rawLocalTime >= 0 && duration !== 0
+          ? duration != null && duration > 0
+            ? Math.min(duration, firstVisibleFrameSeconds)
+            : firstVisibleFrameSeconds
+          : clampedLocalTime;
       seekRuntimeTimeline(timeline, localTime, "runtime.init.transport.childTimeline");
     }
   };
@@ -1713,13 +1720,12 @@ export function initSandboxRuntimeModular(): void {
       } catch (err) {
         swallow("runtime.init.transport.seek", err);
       }
-      // Sibling timelines (registered in __timelines but not nested under
-      // the root) are paused alongside the master. We do NOT seek them to
-      // absolute position `t` here — child timelines nested under the root
-      // are already propagated via tl.totalTime(), and seeking them again
-      // at absolute `t` would clobber their offset-relative position.
-      // Play/pause propagation for siblings happens in the player.play()
-      // and player.pause() overrides via the adapter layer.
+      // Keep registered child composition timelines in sync with the transport
+      // clock as well. Many projects use an empty root master timeline and
+      // register the real per-act GSAP timelines separately in __timelines;
+      // without seeking those child timelines, the main preview stays stuck on
+      // their authored initial state while thumbnails render correctly.
+      seekStandaloneRegisteredTimelines(t);
     } else {
       seekStandaloneRegisteredTimelines(t);
     }

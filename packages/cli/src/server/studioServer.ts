@@ -340,7 +340,16 @@ export function createStudioServer(options: StudioServerOptions): StudioServer {
               },
         )) as Buffer;
         return screenshot;
-      } catch {
+      } catch (err) {
+        console.error("[studio thumbnail] Failed to generate thumbnail", {
+          compPath: opts.compPath,
+          previewUrl: opts.previewUrl,
+          seekTime: opts.seekTime,
+          width: opts.width,
+          height: opts.height,
+          format: opts.format,
+          error: err instanceof Error ? (err.stack ?? err.message) : String(err),
+        });
         return null;
       } finally {
         await page?.close().catch(() => {});

@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode } from "react";
 import { createElement } from "react";
-import { CompositionThumbnail, VideoThumbnail } from "../player";
+import { VideoThumbnail } from "../player";
 import type { TimelineElement } from "../player";
 import { AudioWaveform } from "../player/components/AudioWaveform";
 import { getTimelineElementLabel } from "../utils/studioHelpers";
@@ -21,6 +21,58 @@ function isAudioAssetSrc(src: string | undefined): boolean {
 
 function isVisualAssetSrc(src: string | undefined): boolean {
   return Boolean(src && VISUAL_ASSET_EXTENSION.test(src));
+}
+
+function renderClipPlaceholder(
+  label: string,
+  clipColor: string,
+  labelColor: string,
+  kind: "composition" | "html",
+): ReactNode {
+  const title = kind === "composition" ? "Composition" : "HTML Clip";
+  return createElement(
+    "div",
+    {
+      className: "absolute inset-0 overflow-hidden",
+      "aria-hidden": true,
+    },
+    createElement("div", {
+      className: "absolute inset-0",
+      style: {
+        background: `linear-gradient(135deg, ${clipColor}33 0%, rgba(15,23,42,0.18) 100%)`,
+      },
+    }),
+    createElement("div", {
+      className: "absolute inset-y-0 left-0 w-[3px]",
+      style: { background: clipColor },
+    }),
+    createElement(
+      "div",
+      {
+        className: "absolute inset-x-0 top-0 px-2 py-1",
+        style: {
+          background: "linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.12) 100%)",
+        },
+      },
+      createElement(
+        "span",
+        {
+          className:
+            "block truncate text-[9px] font-semibold uppercase leading-none tracking-[0.12em]",
+          style: { color: labelColor, opacity: 0.85 },
+        },
+        title,
+      ),
+      createElement(
+        "span",
+        {
+          className: "mt-1 block truncate text-[10px] font-semibold leading-tight",
+          style: { color: labelColor },
+        },
+        label,
+      ),
+    ),
+  );
 }
 
 export function useRenderClipContent({
@@ -47,14 +99,12 @@ export function useRenderClipContent({
       // This renders the composition in isolation so we get clean frames
       // instead of capturing the master at a time when the comp is fading in.
       if (compSrc) {
-        return createElement(CompositionThumbnail, {
-          previewUrl: `/api/projects/${pid}/preview/comp/${compSrc}`,
-          label: getTimelineElementLabel(el),
-          labelColor: style.label,
-          accentColor: style.clip,
-          seekTime: 0,
-          duration: el.duration,
-        });
+        return renderClipPlaceholder(
+          getTimelineElementLabel(el),
+          style.clip,
+          style.label,
+          "composition",
+        );
       }
 
       // Audio clips — waveform visualization.
@@ -88,16 +138,7 @@ export function useRenderClipContent({
       // CompositionThumbnail at their start time. Audio-only clips must stay on
       // the waveform path above because selector thumbnails expect visible DOM.
       if (activePreviewUrl && el.duration > 0) {
-        return createElement(CompositionThumbnail, {
-          previewUrl: activePreviewUrl,
-          label: getTimelineElementLabel(el),
-          labelColor: style.label,
-          accentColor: style.clip,
-          selector: el.selector,
-          selectorIndex: el.selectorIndex,
-          seekTime: el.start,
-          duration: el.duration,
-        });
+        return renderClipPlaceholder(getTimelineElementLabel(el), style.clip, style.label, "html");
       }
 
       const htmlPreviewEligible =
@@ -119,16 +160,7 @@ export function useRenderClipContent({
       }
 
       if (htmlPreviewEligible) {
-        return createElement(CompositionThumbnail, {
-          previewUrl: `/api/projects/${pid}/preview`,
-          label: getTimelineElementLabel(el),
-          labelColor: style.label,
-          accentColor: style.clip,
-          selector: el.selector,
-          selectorIndex: el.selectorIndex,
-          seekTime: el.start,
-          duration: el.duration,
-        });
+        return renderClipPlaceholder(getTimelineElementLabel(el), style.clip, style.label, "html");
       }
 
       return null;

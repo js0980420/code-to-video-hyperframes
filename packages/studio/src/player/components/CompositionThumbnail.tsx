@@ -1,5 +1,4 @@
-import { memo, useCallback, useState, useRef } from "react";
-import { useMountEffect } from "../../hooks/useMountEffect";
+import { memo } from "react";
 
 interface CompositionThumbnailProps {
   previewUrl: string;
@@ -14,7 +13,6 @@ interface CompositionThumbnailProps {
   height?: number;
 }
 
-const CLIP_HEIGHT = 66;
 const THUMBNAIL_URL_VERSION = "v3";
 export const COMPOSITION_THUMBNAIL_LABEL_Z_INDEX = 10;
 
@@ -50,99 +48,31 @@ export function buildCompositionThumbnailUrl({
 }
 
 export const CompositionThumbnail = memo(function CompositionThumbnail({
-  previewUrl,
   label,
   labelColor,
   accentColor = "#6B7280",
-  selector,
-  selectorIndex,
-  seekTime = 2,
-  duration = 5,
+  previewUrl: _previewUrl,
+  selector: _selector,
+  selectorIndex: _selectorIndex,
+  seekTime: _seekTime = 2,
+  duration: _duration = 5,
 }: CompositionThumbnailProps) {
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const [aspect, setAspect] = useState(16 / 9);
-  const roRef = useRef<ResizeObserver | null>(null);
-
-  const setContainerRef = useCallback((el: HTMLDivElement | null) => {
-    roRef.current?.disconnect();
-    if (!el) return;
-
-    const measured = el.parentElement?.clientWidth || el.clientWidth;
-    setContainerWidth(measured);
-
-    const target = el.parentElement || el;
-    roRef.current = new ResizeObserver(([entry]) => {
-      setContainerWidth(entry.contentRect.width);
-    });
-    roRef.current.observe(target);
-  }, []);
-
-  useMountEffect(() => () => {
-    roRef.current?.disconnect();
-  });
-
-  const url = buildCompositionThumbnailUrl({
-    previewUrl,
-    seekTime,
-    duration,
-    selector,
-    selectorIndex,
-    origin: window.location.origin,
-  });
-  const frameW = Math.max(48, Math.round(CLIP_HEIGHT * aspect));
-  const frameCount = containerWidth > 0 ? Math.max(1, Math.ceil(containerWidth / frameW)) : 1;
-
   return (
-    <div ref={setContainerRef} className="absolute inset-0 overflow-hidden">
-      <img
-        src={url}
-        alt=""
-        draggable={false}
-        loading="eager"
-        onLoad={(e) => {
-          const img = e.currentTarget;
-          if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-            setAspect(img.naturalWidth / img.naturalHeight);
-          }
-          setLoaded(true);
+    <div className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 100%)",
         }}
-        className="hidden"
       />
-
-      {loaded ? (
-        <div className="absolute inset-0 flex">
-          {Array.from({ length: frameCount }).map((_, i) => (
-            <div
-              key={i}
-              className="relative h-full flex-shrink-0 overflow-hidden"
-              style={{ width: frameW }}
-            >
-              <img
-                src={url}
-                alt=""
-                draggable={false}
-                className="absolute inset-0 h-full w-full object-cover opacity-60"
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          className="absolute inset-0 animate-pulse"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 100%)",
-          }}
-        />
-      )}
-
       <div
         className="absolute inset-0"
         style={{
           background: `linear-gradient(120deg, ${accentColor}2e, transparent 34%), linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08))`,
         }}
       />
+      <div className="absolute inset-y-0 left-0 w-[3px]" style={{ background: accentColor }} />
 
       <div
         className="absolute left-2 top-2"
@@ -156,7 +86,7 @@ export const CompositionThumbnail = memo(function CompositionThumbnail({
             boxShadow: `inset 0 0 0 1px ${accentColor}40`,
           }}
         >
-          {label}
+          Composition
         </span>
       </div>
 

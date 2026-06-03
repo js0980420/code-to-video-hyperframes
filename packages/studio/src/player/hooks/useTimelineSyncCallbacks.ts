@@ -29,6 +29,8 @@ import {
 } from "../lib/timelineIframeHelpers";
 import { getTimelineElementIdentity } from "../lib/timelineElementHelpers";
 
+const FIRST_VISIBLE_FRAME_SECONDS = 1 / 60;
+
 interface UseTimelineSyncCallbacksParams {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   probeIntervalRef: React.MutableRefObject<ReturnType<typeof setInterval> | undefined>;
@@ -156,8 +158,10 @@ export function useTimelineSyncCallbacks({
     const seekTo = pendingSeekRef.current;
     pendingSeekRef.current = null;
     const startTime = seekTo != null ? Math.min(seekTo, adapter.getDuration()) : 0;
+    const visualStartTime =
+      startTime === 0 ? Math.min(adapter.getDuration(), FIRST_VISIBLE_FRAME_SECONDS) : startTime;
 
-    adapter.seek(startTime);
+    adapter.seek(visualStartTime);
     const adapterDur = adapter.getDuration();
     if (
       Number.isFinite(adapterDur) &&

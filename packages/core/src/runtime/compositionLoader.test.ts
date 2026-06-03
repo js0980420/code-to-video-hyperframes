@@ -56,11 +56,7 @@ describe("loadExternalCompositions", () => {
     expect(mountedParagraph?.textContent).toBe("Hello World");
     expect(host.getAttribute("data-width")).toBe("1920");
     expect(host.getAttribute("data-height")).toBe("1080");
-    expect(
-      Array.from(host.children).some(
-        (child) => child.getAttribute("data-composition-id") === "scene-1",
-      ),
-    ).toBe(false);
+    expect(host.firstElementChild?.getAttribute("data-composition-id")).toBe("scene-1");
   });
 
   it("injects styles into document head", async () => {
@@ -236,11 +232,44 @@ describe("loadExternalCompositions", () => {
     expect(injectedScripts[0]?.textContent).toContain('var __hfCompId = "scene";');
     expect(injectedScripts[0]?.textContent).toContain("new Proxy(window.document");
     expect(host.querySelector(".title")?.textContent).toBe("Scene");
-    expect(
-      Array.from(host.children).some(
-        (child) => child.getAttribute("data-composition-id") === "scene",
-      ),
-    ).toBe(false);
+    expect(host.firstElementChild?.getAttribute("data-composition-id")).toBe("scene");
+  });
+
+  it("preserves the inner root wrapper so scoped id selectors still match", async () => {
+    const host = document.createElement("div");
+    host.setAttribute("data-composition-src", "https://example.com/comp.html");
+    host.setAttribute("data-composition-id", "scene");
+    host.className = "clip";
+    document.body.appendChild(host);
+
+    const compositionHtml = `
+      <html><body>
+        <template id="scene-template">
+          <div id="scene" data-composition-id="scene" data-width="1920" data-height="1080">
+            <div class="canvas"><p>Scoped</p></div>
+            <style>
+              #scene .canvas {
+                position: absolute;
+                inset: 0;
+              }
+            </style>
+          </div>
+        </template>
+      </body></html>
+    `;
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(compositionHtml, { status: 200 }));
+
+    const injectedStyles: HTMLStyleElement[] = [];
+    await loadExternalCompositions({
+      ...defaultParams,
+      injectedStyles,
+    });
+
+    expect(host.firstElementChild?.id).toBe("scene");
+    expect(injectedStyles[0]?.textContent).toContain(
+      '[data-composition-id="scene"] #scene .canvas',
+    );
   });
 
   it("handles multiple compositions in parallel", async () => {

@@ -20,7 +20,7 @@ import { useFrameCapture } from "./hooks/useFrameCapture";
 import { useLintModal } from "./hooks/useLintModal";
 import { useCompositionDimensions } from "./hooks/useCompositionDimensions";
 import { useToast } from "./hooks/useToast";
-import { buildProjectHash, parseProjectIdFromHash } from "./utils/projectRouting";
+import { buildProjectHash, resolveStudioProjectId } from "./utils/projectRouting";
 import {
   STUDIO_INSPECTOR_PANELS_ENABLED,
   STUDIO_MOTION_PANEL_ENABLED,
@@ -43,19 +43,19 @@ export function StudioApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [resolving, setResolving] = useState(true);
   useMountEffect(() => {
-    const hashProjectId = parseProjectIdFromHash(window.location.hash);
-    if (hashProjectId) {
-      setProjectId(hashProjectId);
-      setResolving(false);
-      return;
-    }
     fetch("/api/projects")
       .then((r) => r.json())
       .then((data) => {
-        const first = (data.projects ?? [])[0];
-        if (first) {
-          setProjectId(first.id);
-          window.location.hash = buildProjectHash(first.id);
+        const projectIds = (data.projects ?? [])
+          .map((project: { id?: unknown }) => (typeof project.id === "string" ? project.id : null))
+          .filter((id: string | null): id is string => id !== null);
+        const resolvedProjectId = resolveStudioProjectId(window.location.hash, projectIds);
+        if (resolvedProjectId) {
+          setProjectId(resolvedProjectId);
+          const expectedHash = buildProjectHash(resolvedProjectId);
+          if (window.location.hash !== expectedHash) {
+            window.location.hash = expectedHash;
+          }
         }
       })
       .catch(() => {})

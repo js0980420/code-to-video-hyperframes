@@ -127,6 +127,7 @@ async function mountCompositionContent(params: {
       ) ?? null;
   }
   const contentNode = innerRoot ?? params.sourceNode;
+  const assetSourceNode = innerRoot ? params.sourceNode : contentNode;
   const scopeCompositionId =
     innerRoot?.getAttribute("data-composition-id")?.trim() || params.hostCompositionId || null;
 
@@ -147,7 +148,11 @@ async function mountCompositionContent(params: {
     }
   }
 
-  const styles = Array.from(contentNode.querySelectorAll<HTMLStyleElement>("style"));
+  // Template-based sub-compositions commonly place <style>/<script> alongside
+  // the composition root element rather than nested inside it. When we resolve
+  // an inner root by data-composition-id, still collect sibling assets from the
+  // full source node so mounted content keeps its styles and timelines.
+  const styles = Array.from(assetSourceNode.querySelectorAll<HTMLStyleElement>("style"));
   for (const style of styles) {
     const clonedStyle = style.cloneNode(true);
     if (!(clonedStyle instanceof HTMLStyleElement)) continue;
@@ -185,7 +190,7 @@ async function mountCompositionContent(params: {
     }
   }
 
-  const scripts = Array.from(contentNode.querySelectorAll<HTMLScriptElement>("script"));
+  const scripts = Array.from(assetSourceNode.querySelectorAll<HTMLScriptElement>("script"));
   const scriptPayloads: PendingScript[] = [...headScriptPayloads];
   for (const script of scripts) {
     const scriptType = script.getAttribute("type")?.trim() ?? "";
@@ -210,7 +215,7 @@ async function mountCompositionContent(params: {
     }
     script.parentNode?.removeChild(script);
   }
-  const remainingStyles = Array.from(contentNode.querySelectorAll<HTMLStyleElement>("style"));
+  const remainingStyles = Array.from(assetSourceNode.querySelectorAll<HTMLStyleElement>("style"));
   for (const style of remainingStyles) {
     style.parentNode?.removeChild(style);
   }
@@ -225,9 +230,7 @@ async function mountCompositionContent(params: {
     if (heightRaw) params.host.setAttribute("data-height", heightRaw);
     if (widthPx && params.host instanceof HTMLElement) params.host.style.width = widthPx;
     if (heightPx && params.host instanceof HTMLElement) params.host.style.height = heightPx;
-    while (imported.firstChild) {
-      params.host.appendChild(imported.firstChild);
-    }
+    params.host.appendChild(imported);
   } else if (params.hasTemplate) {
     params.host.appendChild(document.importNode(contentNode, true));
   } else {

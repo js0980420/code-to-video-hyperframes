@@ -5,6 +5,7 @@ import {
   buildProjectHash,
   encodeProjectId,
   parseProjectIdFromHash,
+  resolveStudioProjectId,
 } from "./projectRouting";
 
 describe("project routing utilities", () => {
@@ -46,6 +47,28 @@ describe("project routing utilities", () => {
     expect(parseProjectIdFromHash("#settings")).toBeNull();
     expect(parseProjectIdFromHash("#project/")).toBeNull();
     expect(parseProjectIdFromHash("#project/foo/bar")).toBeNull();
+  });
+
+  it("keeps the hash-selected project when it exists on the server", () => {
+    expect(
+      resolveStudioProjectId("#project/hyperframes-stable-production", [
+        "hyperframes-stable-production",
+      ]),
+    ).toBe("hyperframes-stable-production");
+  });
+
+  it("falls back to the first available project when the hash points to a missing project", () => {
+    expect(
+      resolveStudioProjectId("#project/hyperframes-template-tour", [
+        "hyperframes-stable-production",
+      ]),
+    ).toBe("hyperframes-stable-production");
+  });
+
+  it("falls back to the first available project when no project is encoded in the hash", () => {
+    expect(resolveStudioProjectId("", ["hyperframes-stable-production"])).toBe(
+      "hyperframes-stable-production",
+    );
   });
 
   it("encodes project ids when writing hash routes", () => {

@@ -21,6 +21,15 @@ export function parseProjectIdFromHash(hash: string): string | null {
   }
 }
 
+export function resolveStudioProjectId(
+  hash: string,
+  availableProjectIds: readonly string[],
+): string | null {
+  const hashProjectId = parseProjectIdFromHash(hash);
+  if (hashProjectId && availableProjectIds.includes(hashProjectId)) return hashProjectId;
+  return availableProjectIds[0] ?? null;
+}
+
 export function buildProjectApiPath(projectId: string, suffix = ""): string {
   const normalizedSuffix = suffix && !suffix.startsWith("/") ? `/${suffix}` : suffix;
   return `/api/projects/${encodeProjectId(projectId)}${normalizedSuffix}`;
